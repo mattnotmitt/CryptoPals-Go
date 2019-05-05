@@ -2,24 +2,30 @@ package set1
 
 import (
 	"CryptoPals/util"
+	"sort"
 )
 
-func Chal3 (inp string) (string, float64, string) {
-	rawInp := util.FromHex(inp)
-	var best []byte
-	bestScore := 0.0
-	bestKey := 0
+type BFXOR struct {
+	score float64
+	prob float64
+	key byte
+	res []byte
+}
+
+func Chal3 (inp []byte) (string, float64, byte) {
+	bfs := make([]BFXOR, 256)
 
 	for b := 0; b < 256; b++ {
-		res := util.XOR(rawInp, []byte{byte(b)})
-		score := util.ScoreString(string(res))
-		if score > bestScore {
-			bestScore = score
-			best = res
-			bestKey = b
+		res := util.XOR(inp, []byte{byte(b)})
+		score, prob := util.ScoreString(res)
+		bfs[b] = BFXOR{
+			score,
+			prob,
+			byte(b),
+			res,
 		}
-		//fmt.Println(score, string(res))
 	}
 
-	return string(best), bestScore, string(bestKey)
+	sort.Slice(bfs, func(i,j int) bool { return bfs[i].score < bfs[j].score })
+	return string(bfs[0].res), bfs[0].score, bfs[0].key
 }

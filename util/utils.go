@@ -45,6 +45,7 @@ func XOR (inp, key []byte) []byte {
 	if diff < 0 {
 		key = append(key, bytes.Repeat(key, int(math.Ceil(math.Abs(float64(diff))/float64(len(key)))))...)
 	}
+
 	res := make([]byte, int(math.Max(float64(len(inp)), float64(len(key)))))
 	for i := 0; i < len(inp); i++ {
 		res[i] = inp[i] ^ key[i]
@@ -53,10 +54,9 @@ func XOR (inp, key []byte) []byte {
 	return res
 }
 
-func ScoreString (inp string) float64 {
-	rawInp := []byte(inp)
+func ScoreString (inp []byte) (float64, float64) {
 	counts := make([]int, 256)
-	for _, b := range rawInp {
+	for _, b := range inp {
 		counts[b]++
 	}
 
@@ -65,12 +65,31 @@ func ScoreString (inp string) float64 {
 
 	for i, c := range counts {
 		if c > 0 {
-			freqDist[i] = float64(c) / float64(len(rawInp))
+			freqDist[i] = float64(c) / float64(len(inp))
+		}
+	}
+	//fmt.Println(freqDist)
+	score := stat.ChiSquare(freqDist, engFreq)
+	//fmt.Println(score)
+	df := float64(len(freqDist) - 1)
+	//fmt.Println(score, string(inp[:10]))
+	return score, 1 - distuv.ChiSquared{K: df}.CDF(score)
+}
+
+func HammingDistance (orig, new []byte) int {
+	if len(orig) != len(new) {
+		log.Fatal("Byte array lengths do not match.")
+	}
+	hd := 0
+
+	for i, ob := range orig {
+		nb := new[i]
+		for j := 1; j < 129; j = 2 * j {
+			if (ob & byte(j)) != (nb & byte(j)) {
+				hd++
+			}
 		}
 	}
 
-	score := stat.ChiSquare(freqDist, engFreq)
-	df := float64(len(rawInp) - 1)
-
-	return 1 - distuv.ChiSquared{K: df}.CDF(score)
+	return hd
 }

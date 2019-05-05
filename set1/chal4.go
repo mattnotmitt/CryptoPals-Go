@@ -18,7 +18,7 @@ func Chal4 (inp string) string {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		bestDec, locScore, _ := Chal3(scanner.Text())
+		bestDec, locScore, _ := Chal3([]byte(scanner.Text()))
 		if locScore > bestScore {
 			best = bestDec
 			bestScore = locScore
