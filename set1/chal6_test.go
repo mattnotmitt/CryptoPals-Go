@@ -2,7 +2,6 @@ package set1
 
 import (
 	"CryptoPals/util"
-	"encoding/base64"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
@@ -18,6 +17,6 @@ func TestChal6(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	enc, err := base64.StdEncoding.DecodeString(string(data))
+	enc := util.FromBase64(string(data))
 	Chal6(enc, 1)
 }

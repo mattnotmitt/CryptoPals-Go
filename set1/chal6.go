@@ -41,16 +41,7 @@ func Chal6 (enc []byte, keys int) {
 	}
 
 	for _, ks := range kss {
-		var bls [][]byte
-
-		for i := 0; i < len(enc); i += ks.ks {
-			end := i + ks.ks
-			if end > len(enc) {
-				end = len(enc)
-			}
-
-			bls = append(bls, enc[i:end])
-		}
+		bls := util.ChunkByteArray(enc, ks.ks)
 		tbls := make([][]byte, ks.ks)
 
 		for i := 0; i < len(bls); i++ {

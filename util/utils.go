@@ -9,6 +9,8 @@ import (
 	"math"
 )
 
+// ==== Standard Data Conversion ====
+
 func ToHex (inp []byte) string {
 	out := make([]byte, hex.EncodedLen(len(inp)))
 	n := hex.Encode(out, inp)
@@ -38,6 +40,18 @@ func ToBase64 (inp []byte) string {
 	return buf.String()
 }
 
+func FromBase64 (inp string) []byte {
+	enc, err := base64.StdEncoding.DecodeString(string(inp))
+	if err != nil {
+		panic(err)
+	}
+
+	return enc
+}
+
+// ==== Cipher Techniques ====
+
+// Works for both repeating key and normal
 func XOR (inp, key []byte) []byte {
 	diff := len(key) - len(inp)
 
@@ -53,6 +67,22 @@ func XOR (inp, key []byte) []byte {
 	return res
 }
 
+// Splits bytearray into equally sized chunks
+func ChunkByteArray (src []byte, chunksize int) [][]byte {
+	var chunks [][]byte
+
+	for i := 0; i < len(src); i += chunksize {
+		end := i + chunksize
+		if end > len(src) {
+			end = len(src)
+		}
+
+		chunks = append(chunks, src[i:end])
+	}
+	return chunks
+}
+
+// Score string based on a chi2 distribution compared to english
 func ScoreString (inp []byte) (float64, float64) {
 	counts := make([]int, 256)
 	for _, b := range inp {
@@ -67,14 +97,13 @@ func ScoreString (inp []byte) (float64, float64) {
 			freqDist[i] = float64(c) / float64(len(inp))
 		}
 	}
-	//fmt.Println(freqDist)
+
 	score := stat.ChiSquare(freqDist, engFreq)
-	//fmt.Println(score)
 	df := float64(len(freqDist) - 1)
-	//fmt.Println(score, string(inp[:10]))
 	return score, 1 - distuv.ChiSquared{K: df}.CDF(score)
 }
 
+// Compare binary hamming distance between two byte arrays
 func HammingDistance (orig, new []byte) int {
 	if len(orig) != len(new) {
 		panic("Byte array lengths do not match.")
