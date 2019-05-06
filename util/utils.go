@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
-	"log"
 	"math"
 )
 
@@ -21,7 +20,7 @@ func FromHex (inp string) []byte {
 	out := make([]byte, hex.DecodedLen(len(rawInp)))
 	n, err := hex.Decode(out, rawInp)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	return out[:n]
 }
@@ -33,7 +32,7 @@ func ToBase64 (inp []byte) string {
 	defer encoder.Close()
 	_, err := encoder.Write(inp)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return buf.String()
@@ -46,7 +45,7 @@ func XOR (inp, key []byte) []byte {
 		key = append(key, bytes.Repeat(key, int(math.Ceil(math.Abs(float64(diff))/float64(len(key)))))...)
 	}
 
-	res := make([]byte, int(math.Max(float64(len(inp)), float64(len(key)))))
+	res := make([]byte, len(inp))
 	for i := 0; i < len(inp); i++ {
 		res[i] = inp[i] ^ key[i]
 	}
@@ -78,7 +77,7 @@ func ScoreString (inp []byte) (float64, float64) {
 
 func HammingDistance (orig, new []byte) int {
 	if len(orig) != len(new) {
-		log.Fatal("Byte array lengths do not match.")
+		panic("Byte array lengths do not match.")
 	}
 	hd := 0
 

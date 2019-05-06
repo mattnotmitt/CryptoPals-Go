@@ -2,14 +2,13 @@ package set1
 
 import (
 	"bufio"
-	"log"
 	"os"
 )
 
 func Chal4 (inp string) string {
 	file, err := os.Open(inp)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer file.Close()
 

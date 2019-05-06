@@ -2,10 +2,7 @@ package set1
 
 import (
 	"CryptoPals/util"
-	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"sort"
 )
 
@@ -16,15 +13,8 @@ type Keysize struct {
 	nhd float64
 }
 
-func Chal6 (fn string) {
+func Chal6 (enc []byte, keys int) {
 	fmt.Println("Bruteforcing Vigenere...")
-
-	data, err := ioutil.ReadFile(fn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	enc, err := base64.StdEncoding.DecodeString(string(data))
-
 
 	kss := make([]Keysize, 39)
 
@@ -43,9 +33,12 @@ func Chal6 (fn string) {
 
 	}
 	sort.Slice(kss, func(i,j int) bool { return kss[i].nhd < kss[j].nhd })
-	kss = kss[:1]
+	kss = kss[:keys]
 
 	fmt.Printf("Optimal keysize: %v\n", kss[0].ks)
+	if keys > 1 {
+		fmt.Printf("Also checking: %v\n", kss[1:])
+	}
 
 	for _, ks := range kss {
 		var bls [][]byte
@@ -72,6 +65,8 @@ func Chal6 (fn string) {
 			keys[i] = k
 		}
 		fmt.Printf("Best match found, with key: \"%v\":\n", string(keys))
-		fmt.Println(string(util.XOR(enc, keys)))
+		dec := util.XOR(enc, keys)
+		//fmt.Println(enc)
+		fmt.Println(string(dec))
 	}
 }
