@@ -121,3 +121,16 @@ func HammingDistance (orig, new []byte) int {
 
 	return hd
 }
+
+// PKCS#7 Padding Implementation
+func PKCS7Pad (block []byte, size int) []byte {
+	if len(block) == size {
+		return block
+	}
+
+	if len(block) > size {
+		panic("Block longer than specified size")
+	}
+
+	return append(block, bytes.Repeat([]byte("\x04"), size - len(block))...)
+}
