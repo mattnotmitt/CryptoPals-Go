@@ -1,6 +1,7 @@
 package set1
 
 import (
+	"CryptoPals/util"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,8 @@ func TestChal7(t *testing.T) {
 		panic(err)
 	}
 	enc, err := base64.StdEncoding.DecodeString(string(data))
-	plaintext := Chal7(enc, []byte("YELLOW SUBMARINE"))
+	key := []byte("YELLOW SUBMARINE")
+	plaintext := Chal7(enc, key)
 	fmt.Println(string(plaintext))
+	fmt.Println(util.AESECBDecrypt(util.AESECBEncrypt(plaintext, key), key))
 }

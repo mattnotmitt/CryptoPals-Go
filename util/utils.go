@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"crypto/aes"
 	"encoding/base64"
 	"encoding/hex"
 	"gonum.org/v1/gonum/stat"
@@ -68,7 +69,7 @@ func XOR (inp, key []byte) []byte {
 }
 
 // Splits bytearray into equally sized chunks
-func ChunkByteArray (src []byte, chunksize int) [][]byte {
+func ChunkByteArray (src []byte, chunksize int, pad bool) [][]byte {
 	var chunks [][]byte
 
 	for i := 0; i < len(src); i += chunksize {
@@ -79,6 +80,11 @@ func ChunkByteArray (src []byte, chunksize int) [][]byte {
 
 		chunks = append(chunks, src[i:end])
 	}
+
+	if pad {
+		chunks[len(chunks)-1] = PKCS7Pad(chunks[len(chunks)-1], chunksize)
+	}
+
 	return chunks
 }
 
@@ -133,4 +139,39 @@ func PKCS7Pad (block []byte, size int) []byte {
 	}
 
 	return append(block, bytes.Repeat([]byte("\x04"), size - len(block))...)
+}
+
+func AESECBDecrypt (enc, key []byte) []byte {
+	ciph, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	decrypted := make([]byte, len(enc))
+	size := ciph.BlockSize()
+	chunks := ChunkByteArray(enc, size, true)
+
+	for i, chunk := range chunks {
+		ciph.Encrypt(decrypted[i*size:(i+1)*size], chunk)
+	}
+	paddingSize := int(decrypted[len(decrypted)-1])
+	return decrypted[0:len(decrypted)-paddingSize]
+}
+
+func AESECBEncrypt (pt, key []byte) []byte {
+	ciph, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	encrypted := make([]byte, len(pt))
+	size := ciph.BlockSize()
+	chunks := ChunkByteArray(pt, size, true)
+
+	for i, chunk := range chunks {
+		ciph.Encrypt(encrypted[i*size:(i+1)*size], chunk)
+	}
+	return encrypted
+}
+
+func AESCBCEncrypt (pt, key []byte) []byte {
+	return []byte("")
 }

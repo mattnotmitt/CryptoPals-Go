@@ -7,7 +7,7 @@ import (
 )
 
 func detectECB (inp []byte) (map[string]int, float64) {
-	chunks := util.ChunkByteArray(inp, 16)
+	chunks := util.ChunkByteArray(inp, 16, true)
 	chunkFreq := make(map[string]int)
 	repeats := 0.0
 	for _, chunk := range chunks {
