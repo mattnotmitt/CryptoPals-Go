@@ -141,6 +141,21 @@ func PKCS7Pad (block []byte, size int) []byte {
 	return append(block, bytes.Repeat([]byte("\x04"), size - len(block))...)
 }
 
+func AESECBEncrypt (pt, key []byte) []byte {
+	ciph, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	encrypted := make([]byte, len(pt))
+	size := ciph.BlockSize()
+	chunks := ChunkByteArray(pt, size, true)
+
+	for i, chunk := range chunks {
+		ciph.Encrypt(encrypted[i*size:(i+1)*size], chunk)
+	}
+	return encrypted
+}
+
 func AESECBDecrypt (enc, key []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
@@ -157,7 +172,7 @@ func AESECBDecrypt (enc, key []byte) []byte {
 	return decrypted[0:len(decrypted)-paddingSize]
 }
 
-func AESECBEncrypt (pt, key []byte) []byte {
+func AESCBCEncrypt (pt, key, iv []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -165,13 +180,31 @@ func AESECBEncrypt (pt, key []byte) []byte {
 	encrypted := make([]byte, len(pt))
 	size := ciph.BlockSize()
 	chunks := ChunkByteArray(pt, size, true)
-
+	lastChunk := iv
 	for i, chunk := range chunks {
-		ciph.Encrypt(encrypted[i*size:(i+1)*size], chunk)
+		ciph.Encrypt(encrypted[i*size:(i+1)*size], XOR(chunk, lastChunk))
+		lastChunk = encrypted[i*size:(i+1)*size]
 	}
+
 	return encrypted
 }
 
-func AESCBCEncrypt (pt, key []byte) []byte {
-	return []byte("")
+func AESCBCDecrypt (pt, key, iv []byte) []byte {
+	ciph, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	var decrypted []byte
+	size := ciph.BlockSize()
+	chunks := ChunkByteArray(pt, size, true)
+	lastChunk := iv
+	for _, chunk := range chunks {
+		decChunk := make([]byte, size)
+		ciph.Decrypt(decChunk, chunk)
+		decrypted = append(decrypted, XOR(decChunk, lastChunk)...)
+		lastChunk = chunk
+	}
+
+	paddingSize := int(decrypted[len(decrypted)-1])
+	return decrypted[0:len(decrypted)-paddingSize]
 }
