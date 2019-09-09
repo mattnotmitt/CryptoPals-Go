@@ -17,18 +17,18 @@ This will run through each of the challenges for that set, verifying the expecte
 
   - [x] 01. Convert hex to base64
   - [x] 02. Fixed XOR
-  - [ ] 03. Single-byte XOR cipher
-  - [ ] 04. Detect single-character XOR
-  - [ ] 05. Implement repeating-key XOR
-  - [ ] 06. Break repeating-key XOR
-  - [ ] 07. AES in ECB mode
-  - [ ] 08. Detect AES in ECB mode
+  - [x] 03. Single-byte XOR cipher
+  - [x] 04. Detect single-character XOR
+  - [x] 05. Implement repeating-key XOR
+  - [x] 06. Break repeating-key XOR
+  - [x] 07. AES in ECB mode
+  - [x] 08. Detect AES in ECB mode
 
 ### [Set 2: Block Crypto](http://cryptopals.com/sets/2)
 
-  - [ ] 09. Implement PKCS#7 padding
-  - [ ] 10. Implement CBC mode
-  - [ ] 11. An ECB/CBC detection oracle
+  - [x] 09. Implement PKCS#7 padding
+  - [x] 10. Implement CBC mode
+  - [x] 11. An ECB/CBC detection oracle
   - [ ] 12. Byte-at-a-time ECB decryption (Simple)
   - [ ] 13. ECB cut-and-paste
   - [ ] 14. Byte-at-a-time ECB decryption (Harder)
