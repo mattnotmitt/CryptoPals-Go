@@ -5,9 +5,11 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
+	"math/rand"
 )
 
 // ==== Standard Data Conversion ====
@@ -146,9 +148,10 @@ func AESECBEncrypt (pt, key []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
-	encrypted := make([]byte, len(pt))
+
 	size := ciph.BlockSize()
 	chunks := ChunkByteArray(pt, size, true)
+	encrypted := make([]byte, len(chunks) * size)
 
 	for i, chunk := range chunks {
 		ciph.Encrypt(encrypted[i*size:(i+1)*size], chunk)
@@ -172,14 +175,31 @@ func AESECBDecrypt (enc, key []byte) []byte {
 	return decrypted[0:len(decrypted)-paddingSize]
 }
 
+func DetectECB(inp []byte) (map[string]int, float64) {
+	chunks := ChunkByteArray(inp, 16, true)
+	chunkFreq := make(map[string]int)
+	repeats := 0.0
+	for _, chunk := range chunks {
+		if _, ok := chunkFreq[string(chunk)]; ok {
+			chunkFreq[string(chunk)]++
+			repeats++
+		} else {
+			chunkFreq[string(chunk)] = 1
+		}
+	}
+	return chunkFreq, repeats
+}
+
 func AESCBCEncrypt (pt, key, iv []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
-	encrypted := make([]byte, len(pt))
+
 	size := ciph.BlockSize()
 	chunks := ChunkByteArray(pt, size, true)
+	encrypted := make([]byte, len(chunks) * size)
+
 	lastChunk := iv
 	for i, chunk := range chunks {
 		ciph.Encrypt(encrypted[i*size:(i+1)*size], XOR(chunk, lastChunk))
@@ -204,7 +224,27 @@ func AESCBCDecrypt (pt, key, iv []byte) []byte {
 		decrypted = append(decrypted, XOR(decChunk, lastChunk)...)
 		lastChunk = chunk
 	}
+	return decrypted
+}
 
-	paddingSize := int(decrypted[len(decrypted)-1])
-	return decrypted[0:len(decrypted)-paddingSize]
+func RandBytes (size int) []byte {
+	key := make([]byte, size)
+	rand.Read(key)
+	return key
+}
+
+func AESOracle (pt []byte) []byte {
+	var encrypted []byte
+	key := RandBytes(16)
+	pt = append(RandBytes(rand.Intn(6) + 5), append(pt, RandBytes(rand.Intn(6) + 5)...)...)
+	choice := rand.Intn(2)
+	switch choice {
+	case 0:
+		fmt.Println("Using CBC mode.")
+		encrypted = AESCBCEncrypt(pt, key, []byte("\x00"))
+	case 1:
+		fmt.Println("Using ECB mode.")
+		encrypted = AESECBEncrypt(pt, key)
+	}
+	return encrypted
 }
