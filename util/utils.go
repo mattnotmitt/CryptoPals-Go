@@ -5,7 +5,6 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
@@ -169,14 +168,14 @@ func AESECBDecrypt (enc, key []byte) []byte {
 	chunks := ChunkByteArray(enc, size, true)
 
 	for i, chunk := range chunks {
-		ciph.Encrypt(decrypted[i*size:(i+1)*size], chunk)
+		ciph.Decrypt(decrypted[i*size:(i+1)*size], chunk)
 	}
 	paddingSize := int(decrypted[len(decrypted)-1])
 	return decrypted[0:len(decrypted)-paddingSize]
 }
 
-func DetectECB(inp []byte) (map[string]int, float64) {
-	chunks := ChunkByteArray(inp, 16, true)
+func DetectECB(inp []byte, size int) (map[string]int, float64) {
+	chunks := ChunkByteArray(inp, size, true)
 	chunkFreq := make(map[string]int)
 	repeats := 0.0
 	for _, chunk := range chunks {
@@ -231,20 +230,4 @@ func RandBytes (size int) []byte {
 	key := make([]byte, size)
 	rand.Read(key)
 	return key
-}
-
-func AESOracle (pt []byte) []byte {
-	var encrypted []byte
-	key := RandBytes(16)
-	pt = append(RandBytes(rand.Intn(6) + 5), append(pt, RandBytes(rand.Intn(6) + 5)...)...)
-	choice := rand.Intn(2)
-	switch choice {
-	case 0:
-		fmt.Println("Using CBC mode.")
-		encrypted = AESCBCEncrypt(pt, key, []byte("\x00"))
-	case 1:
-		fmt.Println("Using ECB mode.")
-		encrypted = AESECBEncrypt(pt, key)
-	}
-	return encrypted
 }

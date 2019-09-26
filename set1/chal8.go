@@ -20,7 +20,7 @@ func Chal8 (inp string) ([]byte, int, float64) {
 	scanner := bufio.NewScanner(file)
 	for line := 0; scanner.Scan(); line++ {
 		data := scanner.Text()
-		_, score := util.DetectECB(util.FromHex(data))
+		_, score := util.DetectECB(util.FromHex(data), 16)
 		if score > bestScore {
 			best = []byte(data)
 			bestLine = line
