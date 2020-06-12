@@ -12,9 +12,7 @@ type Oracle func (pt []byte) []byte
 func AESOracleStatic (pt []byte) []byte {
 	var encrypted []byte
 	data, err := ioutil.ReadFile("data/12.txt")
-	if err != nil {
-		panic(err)
-	}
+	util.Check(err)
 	unknown := util.FromBase64(string(data))
 
 	rand.Seed(1)

@@ -30,7 +30,7 @@ This will run through each of the challenges for that set, verifying the expecte
   - [x] 10. Implement CBC mode
   - [x] 11. An ECB/CBC detection oracle
   - [x] 12. Byte-at-a-time ECB decryption (Simple)
-  - [ ] 13. ECB cut-and-paste
+  - [x] 13. ECB cut-and-paste
   - [ ] 14. Byte-at-a-time ECB decryption (Harder)
   - [ ] 15. PKCS#7 padding validation
   - [ ] 16. CBC bitflipping attacks

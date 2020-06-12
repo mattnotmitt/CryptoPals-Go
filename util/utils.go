@@ -9,7 +9,16 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 	"math/rand"
+	"time"
 )
+
+// ==== Error Handling ====
+
+func Check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 // ==== Standard Data Conversion ====
 
@@ -170,8 +179,7 @@ func AESECBDecrypt (enc, key []byte) []byte {
 	for i, chunk := range chunks {
 		ciph.Decrypt(decrypted[i*size:(i+1)*size], chunk)
 	}
-	paddingSize := int(decrypted[len(decrypted)-1])
-	return decrypted[0:len(decrypted)-paddingSize]
+	return bytes.TrimRight(decrypted, "\x04")
 }
 
 func DetectECB(inp []byte, size int) (map[string]int, float64) {
@@ -223,11 +231,13 @@ func AESCBCDecrypt (pt, key, iv []byte) []byte {
 		decrypted = append(decrypted, XOR(decChunk, lastChunk)...)
 		lastChunk = chunk
 	}
-	return decrypted
+	return bytes.TrimRight(decrypted, "\x04")
 }
 
 func RandBytes (size int) []byte {
+	rand.Seed(time.Now().UnixNano())
 	key := make([]byte, size)
-	rand.Read(key)
+	_, err := rand.Read(key)
+	Check(err)
 	return key
 }
