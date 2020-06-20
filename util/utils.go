@@ -5,10 +5,13 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -240,4 +243,37 @@ func RandBytes (size int) []byte {
 	_, err := rand.Read(key)
 	Check(err)
 	return key
+}
+
+func stringEvery (str string, f func(rune) bool) bool {
+	for _, r := range str {
+		if !f(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func VerifyPadding(pt string, size int) (string, error) {
+	// Invalid padding if not divisible by block size
+	if len(pt) % size != 0 {
+		return "", errors.New("padded string must be multiple of blocksize")
+	}
+	// Check if all runes are printable
+	allPrintable := stringEvery(pt, func(r rune) bool {
+		return strconv.IsPrint(r)
+	})
+	// Return if all runes printable
+	if allPrintable {
+		return pt, nil
+	}
+	trimPt := strings.TrimRight(pt, "\x04")
+	trimPrintable := stringEvery(trimPt, func(r rune) bool {
+		return strconv.IsPrint(r)
+	})
+	// If all characters printable after padding trimmed, valid
+	if trimPrintable {
+		return trimPt, nil
+	}
+	return "", errors.New("non-printable characters other than padding in text")
 }
