@@ -2,18 +2,11 @@ package set2
 
 import (
 	"CryptoPals/util"
-	"io/ioutil"
 	"regexp"
 	"sort"
 	"strings"
 	"sync"
 )
-
-func genKey () {
-	key := util.RandBytes(16)
-	err :=  ioutil.WriteFile("data/13.asc", key, 0644)
-	util.Check(err)
-}
 
 func KVParser (kvStr string) map[string]string {
 	kvMap := make(map[string]string)
@@ -65,20 +58,16 @@ func EncryptProfile (profile string, key []byte) []byte {
 	return encryptedProf
 }
 
-var keySetup sync.Once
+var keySetup13 sync.Once
+var key13 []byte
 func Login (email string) []byte {
-	keySetup.Do(func() { genKey() }) // Generate key on first run of program and persist
-	// Load key from file
-	key, err := ioutil.ReadFile("data/13.asc")
-	util.Check(err)
+	keySetup13.Do(func() { key13 = util.RandBytes(16) }) // Generate key on first run of program and persist
 	// Generate profile and encode to KV string
 	ptProf := KVEncoder(ProfileFor(email), true)
-	return EncryptProfile(ptProf, key)
+	return EncryptProfile(ptProf, key13)
 }
 
 func VerifyCookie (cookie []byte) map[string]string {
-	key, err := ioutil.ReadFile("data/13.asc")
-	util.Check(err)
-	kvPt := util.AESECBDecrypt(cookie, key)
+	kvPt := util.AESECBDecrypt(cookie, key13)
 	return KVParser(string(kvPt))
 }

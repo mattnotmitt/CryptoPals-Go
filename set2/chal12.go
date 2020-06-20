@@ -4,21 +4,26 @@ import (
 	"CryptoPals/util"
 	"bytes"
 	"io/ioutil"
-	"math/rand"
+	"sync"
 )
 
 type Oracle func (pt []byte) []byte
+var setup12 sync.Once
+var key12 []byte
+var unknown12 []byte
 
 func AESOracleStatic (pt []byte) []byte {
 	var encrypted []byte
-	data, err := ioutil.ReadFile("data/12.txt")
-	util.Check(err)
-	unknown := util.FromBase64(string(data))
 
-	rand.Seed(1)
-	key := util.RandBytes(16)
-	pt = append(pt, unknown...)
-	encrypted = util.AESECBEncrypt(pt, key)
+	setup12.Do(func() {
+		data, err := ioutil.ReadFile("data/12.txt")
+		util.Check(err)
+		unknown12 = util.FromBase64(string(data))
+		key12 = util.RandBytes(16)
+	}) // Generate key on first run of program and persist
+	// Load key from file
+	pt = append(pt, unknown12...)
+	encrypted = util.AESECBEncrypt(pt, key12)
 	return encrypted
 }
 
@@ -35,12 +40,12 @@ func determineBlockSize(oracle Oracle) int {
 	}
 }
 
-func generateByteLookup(oracle Oracle, prefix []byte, start, end int) map[string]byte {
+func generateByteLookup(oracle Oracle, prefix []byte, start, end int, c chan map[string]byte) {
 	chunkFreq := make(map[string]byte)
 	for b := byte(0); b < 128; b++ {
 		chunkFreq[string(oracle(append(prefix, b))[start:end])] = b
 	}
-	return chunkFreq
+	c <- chunkFreq
 }
 
 func Chal12 () []byte {
@@ -60,12 +65,15 @@ func Chal12 () []byte {
 		for i := size - 1; i >= 0; i-- {
 			pref := bytes.Repeat([]byte("A"), i)
 			knownPrefix := append(pref, decrypted...)
-			lookup := generateByteLookup(AESOracleStatic, knownPrefix, blockStart, blockEnd)
+
+			lookupC := make(chan map[string]byte)
+			go generateByteLookup(AESOracleStatic, knownPrefix, blockStart, blockEnd, lookupC)
 
 			block := AESOracleStatic(pref)[blockStart:blockEnd]
+			lookup := <- lookupC
 			decrypted = append(decrypted, lookup[string(block)])
 		}
 	}
 
-	return decrypted
+	return bytes.TrimRight(decrypted, "\x04")
 }
