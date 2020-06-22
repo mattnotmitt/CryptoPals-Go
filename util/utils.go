@@ -216,14 +216,14 @@ func AESCBCEncrypt(pt, key, iv []byte) []byte {
 	return encrypted
 }
 
-func AESCBCDecrypt(pt, key, iv []byte) []byte {
+func AESCBCDecrypt(enc, key, iv []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
 	var decrypted []byte
 	size := ciph.BlockSize()
-	chunks := ChunkByteArray(pt, size, true)
+	chunks := ChunkByteArray(enc, size, true)
 	lastChunk := iv
 	for _, chunk := range chunks {
 		decChunk := make([]byte, size)
