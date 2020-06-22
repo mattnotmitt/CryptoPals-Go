@@ -7,12 +7,13 @@ import (
 	"sync"
 )
 
-type Oracle func (pt []byte) []byte
+type Oracle func(pt []byte) []byte
+
 var setup12 sync.Once
 var key12 []byte
 var unknown12 []byte
 
-func AESOracleStatic (pt []byte) []byte {
+func aesOracleStatic(pt []byte) []byte {
 	var encrypted []byte
 
 	setup12.Do(func() {
@@ -29,7 +30,7 @@ func AESOracleStatic (pt []byte) []byte {
 
 func determineBlockSize(oracle Oracle) int {
 	prevLen := 0
-	for i := 1;; i++ {
+	for i := 1; ; i++ {
 		result := oracle(bytes.Repeat([]byte("A"), i))
 		if len(result) > prevLen {
 			if prevLen != 0 {
@@ -48,15 +49,15 @@ func generateByteLookup(oracle Oracle, prefix []byte, start, end int, c chan map
 	c <- chunkFreq
 }
 
-func Chal12 () []byte {
+func chal12() []byte {
 	var decrypted []byte
-	result := AESOracleStatic(bytes.Repeat([]byte("A"), 128))
-	size := determineBlockSize(AESOracleStatic)
+	result := aesOracleStatic(bytes.Repeat([]byte("A"), 128))
+	size := determineBlockSize(aesOracleStatic)
 	_, score := util.DetectECB(result, size)
 	if score == 0 {
 		panic("Not ECB!")
 	}
-	emptyCipherLen := len(AESOracleStatic([]byte{}))
+	emptyCipherLen := len(aesOracleStatic([]byte{}))
 
 	for len(decrypted) < emptyCipherLen {
 		blockStart := len(decrypted)
@@ -67,10 +68,10 @@ func Chal12 () []byte {
 			knownPrefix := append(pref, decrypted...)
 
 			lookupC := make(chan map[string]byte)
-			go generateByteLookup(AESOracleStatic, knownPrefix, blockStart, blockEnd, lookupC)
+			go generateByteLookup(aesOracleStatic, knownPrefix, blockStart, blockEnd, lookupC)
 
-			block := AESOracleStatic(pref)[blockStart:blockEnd]
-			lookup := <- lookupC
+			block := aesOracleStatic(pref)[blockStart:blockEnd]
+			lookup := <-lookupC
 			decrypted = append(decrypted, lookup[string(block)])
 		}
 	}

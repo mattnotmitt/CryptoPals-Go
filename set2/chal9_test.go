@@ -1,10 +1,11 @@
 package set2
 
 import (
-	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestChal9(t *testing.T) {
-	fmt.Printf("%q\n", Chal9("YELLOW SUBMARINE", 16))
+	expected := "YELLOW SUBMARINE\x04\x04\x04\x04"
+	assert.Equal(t, expected, chal9("YELLOW SUBMARINE", 20))
 }

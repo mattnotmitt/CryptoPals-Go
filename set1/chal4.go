@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Chal4 (inp string) string {
+func chal4(inp string) string {
 	file, err := os.Open(inp)
 	if err != nil {
 		panic(err)
@@ -17,7 +17,7 @@ func Chal4 (inp string) string {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		bestDec, locScore, _ := Chal3([]byte(scanner.Text()))
+		bestDec, locScore, _ := chal3([]byte(scanner.Text()))
 		if locScore > bestScore {
 			best = bestDec
 			bestScore = locScore

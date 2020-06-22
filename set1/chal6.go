@@ -9,11 +9,11 @@ import (
 // oh godddddddddd
 
 type Keysize struct {
-	ks int
+	ks  int
 	nhd float64
 }
 
-func Chal6 (enc []byte, keys int) {
+func chal6(enc []byte, keys int) {
 	fmt.Println("Bruteforcing Vigenere...")
 
 	kss := make([]Keysize, 39)
@@ -29,10 +29,10 @@ func Chal6 (enc []byte, keys int) {
 		}
 
 		nhd := avgDist / iter
-		kss[ks - 2] = Keysize{ks,nhd}
+		kss[ks-2] = Keysize{ks, nhd}
 
 	}
-	sort.Slice(kss, func(i,j int) bool { return kss[i].nhd < kss[j].nhd })
+	sort.Slice(kss, func(i, j int) bool { return kss[i].nhd < kss[j].nhd })
 	kss = kss[:keys]
 
 	fmt.Printf("Optimal keysize: %v\n", kss[0].ks)
@@ -52,7 +52,7 @@ func Chal6 (enc []byte, keys int) {
 
 		keys := make([]byte, ks.ks)
 		for i, tbl := range tbls {
-			_, _, k := Chal3(tbl)
+			_, _, k := chal3(tbl)
 			keys[i] = k
 		}
 		fmt.Printf("Best match found, with key: \"%v\":\n", string(keys))

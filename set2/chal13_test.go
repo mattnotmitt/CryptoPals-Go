@@ -12,30 +12,30 @@ func TestChal13(t *testing.T) {
 		"baz": "qux",
 		"zap": "zazzle",
 	}
-	kvActual := KVParser("foo=bar&baz=qux&zap=zazzle")
+	kvActual := kvParser("foo=bar&baz=qux&zap=zazzle")
 	assert.Equal(t, kvExpected, kvActual)
 
 	// ProfileFor Tests
 	pfExpected := map[string]string{
 		"email": "foo@bar.comroleadmin",
-		"uid": "10",
-		"role": "user",
+		"uid":   "10",
+		"role":  "user",
 	}
-	pfActual := ProfileFor("foo@bar.com&role=admin")
+	pfActual := profileFor("foo@bar.com&role=admin")
 	assert.Equal(t, pfExpected, pfActual)
 
 	// Login Tests
-	encProf := Login("foo@bar.com") // Compare 2 runs
-	encProf2 := Login("foo@bar.com")
+	encProf := login("foo@bar.com") // Compare 2 runs
+	encProf2 := login("foo@bar.com")
 	assert.Equal(t, encProf, encProf2)
 
 	// VerifyCookie Tests
 	vcExpected := map[string]string{
 		"email": "foo@bar.com",
-		"uid": "10",
-		"role": "user",
+		"uid":   "10",
+		"role":  "user",
 	}
-	decProf := VerifyCookie(encProf2)
+	decProf := verifyCookie(encProf2)
 	assert.Equal(t, vcExpected, decProf)
 }
 
@@ -45,9 +45,9 @@ func TestBreakECB(t *testing.T) {
 	// - one where the final block contains "user" padded out to 16 bytes
 	// then we simply remove the last block of the second and replace it with the
 	// second block of the first profile
-	normalProf := Login("a@aaaaa.co.uk")
-	weirdProf := Login("a@aaaaa.euadmin\x04\x04\x04\x04\x04\x04\x04\x04\x04\x04\x04")
+	normalProf := login("a@aaaaa.co.uk")
+	weirdProf := login("a@aaaaa.euadmin\x04\x04\x04\x04\x04\x04\x04\x04\x04\x04\x04")
 	adminProfEnc := append(normalProf[:32], weirdProf[16:32]...)
-	adminProf := VerifyCookie(adminProfEnc)
+	adminProf := verifyCookie(adminProfEnc)
 	assert.Equal(t, "admin", adminProf["role"])
 }

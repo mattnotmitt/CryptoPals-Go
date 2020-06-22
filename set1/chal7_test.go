@@ -1,6 +1,7 @@
 package set1
 
 import (
+	"CryptoPals/util"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -8,14 +9,10 @@ import (
 )
 
 func TestChal7(t *testing.T) {
-
 	data, err := ioutil.ReadFile("data/7.txt")
-	//fmt.Println(string(data[:len(data)-1]))
-	if err != nil {
-		panic(err)
-	}
+	util.Check(err)
 	enc, err := base64.StdEncoding.DecodeString(string(data))
 	key := []byte("YELLOW SUBMARINE")
-	plaintext := Chal7(enc, key)
+	plaintext := chal7(enc, key)
 	fmt.Println(string(plaintext))
 }

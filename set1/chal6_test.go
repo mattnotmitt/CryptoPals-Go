@@ -13,10 +13,7 @@ func TestChal6(t *testing.T) {
 	assert.Equal(t, expectedHd, hd)
 
 	data, err := ioutil.ReadFile("data/6.txt")
-	//fmt.Println(string(data[:len(data)-1]))
-	if err != nil {
-		panic(err)
-	}
+	util.Check(err)
 	enc := util.FromBase64(string(data))
-	Chal6(enc, 1)
+	chal6(enc, 1)
 }

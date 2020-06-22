@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func Chal8 (inp string) ([]byte, int, float64) {
+func chal8(inp string) ([]byte, int, float64) {
 	file, err := os.Open(inp)
 	if err != nil {
 		panic(err)

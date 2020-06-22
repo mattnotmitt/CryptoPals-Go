@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-func Chal10 (fp string) []byte {
+func chal10(fp string) []byte {
 	data, err := ioutil.ReadFile(fp)
 	//fmt.Println(string(data[:len(data)-1]))
 	if err != nil {

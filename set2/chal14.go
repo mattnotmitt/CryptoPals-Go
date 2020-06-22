@@ -13,7 +13,7 @@ var setup14 sync.Once
 var key14 []byte
 var randPref []byte
 
-func AESOracleStaticRand (pt []byte) []byte {
+func aesOracleStaticRand(pt []byte) []byte {
 	var encrypted []byte
 	data, err := ioutil.ReadFile("data/12.txt")
 	util.Check(err)
@@ -30,6 +30,7 @@ func AESOracleStaticRand (pt []byte) []byte {
 	encrypted = util.AESECBEncrypt(pt, key14)
 	return encrypted
 }
+
 /*
 func byteSliceIndex(chunkedSlice [][]byte, chunkMatch []byte) int {
 	for n, chunk := range chunkedSlice {
@@ -40,10 +41,10 @@ func byteSliceIndex(chunkedSlice [][]byte, chunkMatch []byte) int {
 	return -1
 }*/
 
-func determineRandLen (oracle Oracle, size int) int {
+func determineRandLen(oracle Oracle, size int) int {
 	//var lastIndex = 0
 	var lastPos int
-	for i := size*3; i >= 0; i-- {
+	for i := size * 3; i >= 0; i-- {
 		result := oracle(bytes.Repeat([]byte("A"), i))
 		chunkResult := util.ChunkByteArray(result, size, false)
 		lastIndex := 0
@@ -54,18 +55,18 @@ func determineRandLen (oracle Oracle, size int) int {
 			}
 			lastIndex++
 		}
-		if lastIndex == len(chunkResult) - 1 {
-			return lastPos * size + (32 - (i + 1))
+		if lastIndex == len(chunkResult)-1 {
+			return lastPos*size + (32 - (i + 1))
 		}
 	}
 	return -1
 }
 
-func Chal14 () []byte {
+func chal14() []byte {
 	var decrypted []byte
-	result := AESOracleStaticRand(bytes.Repeat([]byte("A"), 128))
-	size := determineBlockSize(AESOracleStaticRand)
-	randSize := determineRandLen(AESOracleStaticRand, size)
+	result := aesOracleStaticRand(bytes.Repeat([]byte("A"), 128))
+	size := determineBlockSize(aesOracleStaticRand)
+	randSize := determineRandLen(aesOracleStaticRand, size)
 	if randSize == -1 {
 		panic("Couldn't determine length of random string")
 	}
@@ -73,21 +74,21 @@ func Chal14 () []byte {
 	if score == 0 {
 		panic("Not ECB!")
 	}
-	emptyCipherLen := len(AESOracleStaticRand([]byte{}))
+	emptyCipherLen := len(aesOracleStaticRand([]byte{}))
 
-	for len(decrypted) < emptyCipherLen - randSize {
-		blockStart := len(decrypted) + randSize + (size - (randSize % 16))
+	for len(decrypted) < emptyCipherLen-randSize {
+		blockStart := len(decrypted) + randSize
 		blockEnd := blockStart + size
 
 		for i := size - 1; i >= 0; i-- {
-			pref := bytes.Repeat([]byte("A"), i + (size - (randSize % 16)))
+			pref := bytes.Repeat([]byte("A"), i+(size-(randSize%16)))
 			knownPrefix := append(pref, decrypted...)
 
 			lookupC := make(chan map[string]byte)
-			go generateByteLookup(AESOracleStaticRand, knownPrefix, blockStart, blockEnd, lookupC)
-			prefEnc := AESOracleStaticRand(pref)
+			go generateByteLookup(aesOracleStaticRand, knownPrefix, blockStart, blockEnd, lookupC)
+			prefEnc := aesOracleStaticRand(pref)
 			block := prefEnc[blockStart:blockEnd]
-			lookup := <- lookupC
+			lookup := <-lookupC
 			decrypted = append(decrypted, lookup[string(block)])
 		}
 	}

@@ -5,13 +5,10 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 	"math/rand"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -25,13 +22,13 @@ func Check(e error) {
 
 // ==== Standard Data Conversion ====
 
-func ToHex (inp []byte) string {
+func ToHex(inp []byte) string {
 	out := make([]byte, hex.EncodedLen(len(inp)))
 	n := hex.Encode(out, inp)
 	return string(out[:n])
 }
 
-func FromHex (inp string) []byte {
+func FromHex(inp string) []byte {
 	rawInp := []byte(inp)
 	out := make([]byte, hex.DecodedLen(len(rawInp)))
 	n, err := hex.Decode(out, rawInp)
@@ -41,7 +38,7 @@ func FromHex (inp string) []byte {
 	return out[:n]
 }
 
-func ToBase64 (inp []byte) string {
+func ToBase64(inp []byte) string {
 	buf := new(bytes.Buffer)
 
 	encoder := base64.NewEncoder(base64.StdEncoding, buf)
@@ -54,7 +51,7 @@ func ToBase64 (inp []byte) string {
 	return buf.String()
 }
 
-func FromBase64 (inp string) []byte {
+func FromBase64(inp string) []byte {
 	enc, err := base64.StdEncoding.DecodeString(string(inp))
 	if err != nil {
 		panic(err)
@@ -66,7 +63,7 @@ func FromBase64 (inp string) []byte {
 // ==== Cipher Techniques ====
 
 // Works for both repeating key and normal
-func XOR (inp, key []byte) []byte {
+func XOR(inp, key []byte) []byte {
 	diff := len(key) - len(inp)
 
 	if diff < 0 {
@@ -82,7 +79,7 @@ func XOR (inp, key []byte) []byte {
 }
 
 // Splits bytearray into equally sized chunks
-func ChunkByteArray (src []byte, chunksize int, pad bool) [][]byte {
+func ChunkByteArray(src []byte, chunksize int, pad bool) [][]byte {
 	var chunks [][]byte
 
 	for i := 0; i < len(src); i += chunksize {
@@ -102,7 +99,7 @@ func ChunkByteArray (src []byte, chunksize int, pad bool) [][]byte {
 }
 
 // Score string based on a chi2 distribution compared to english
-func ScoreString (inp []byte) (float64, float64) {
+func ScoreString(inp []byte) (float64, float64) {
 	counts := make([]int, 256)
 	for _, b := range inp {
 		counts[b]++
@@ -123,7 +120,7 @@ func ScoreString (inp []byte) (float64, float64) {
 }
 
 // Compare binary hamming distance between two byte arrays
-func HammingDistance (orig, new []byte) int {
+func HammingDistance(orig, new []byte) int {
 	if len(orig) != len(new) {
 		panic("Byte array lengths do not match.")
 	}
@@ -142,7 +139,7 @@ func HammingDistance (orig, new []byte) int {
 }
 
 // PKCS#7 Padding Implementation
-func PKCS7Pad (block []byte, size int) []byte {
+func PKCS7Pad(block []byte, size int) []byte {
 	if len(block) == size {
 		return block
 	}
@@ -151,10 +148,10 @@ func PKCS7Pad (block []byte, size int) []byte {
 		panic("Block longer than specified size")
 	}
 
-	return append(block, bytes.Repeat([]byte("\x04"), size - len(block))...)
+	return append(block, bytes.Repeat([]byte("\x04"), size-len(block))...)
 }
 
-func AESECBEncrypt (pt, key []byte) []byte {
+func AESECBEncrypt(pt, key []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -162,7 +159,7 @@ func AESECBEncrypt (pt, key []byte) []byte {
 
 	size := ciph.BlockSize()
 	chunks := ChunkByteArray(pt, size, true)
-	encrypted := make([]byte, len(chunks) * size)
+	encrypted := make([]byte, len(chunks)*size)
 
 	for i, chunk := range chunks {
 		ciph.Encrypt(encrypted[i*size:(i+1)*size], chunk)
@@ -170,7 +167,7 @@ func AESECBEncrypt (pt, key []byte) []byte {
 	return encrypted
 }
 
-func AESECBDecrypt (enc, key []byte) []byte {
+func AESECBDecrypt(enc, key []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -200,7 +197,7 @@ func DetectECB(inp []byte, size int) (map[string]int, float64) {
 	return chunkFreq, repeats
 }
 
-func AESCBCEncrypt (pt, key, iv []byte) []byte {
+func AESCBCEncrypt(pt, key, iv []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -208,18 +205,18 @@ func AESCBCEncrypt (pt, key, iv []byte) []byte {
 
 	size := ciph.BlockSize()
 	chunks := ChunkByteArray(pt, size, true)
-	encrypted := make([]byte, len(chunks) * size)
+	encrypted := make([]byte, len(chunks)*size)
 
 	lastChunk := iv
 	for i, chunk := range chunks {
 		ciph.Encrypt(encrypted[i*size:(i+1)*size], XOR(chunk, lastChunk))
-		lastChunk = encrypted[i*size:(i+1)*size]
+		lastChunk = encrypted[i*size : (i+1)*size]
 	}
 
 	return encrypted
 }
 
-func AESCBCDecrypt (pt, key, iv []byte) []byte {
+func AESCBCDecrypt(pt, key, iv []byte) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -237,7 +234,7 @@ func AESCBCDecrypt (pt, key, iv []byte) []byte {
 	return bytes.TrimRight(decrypted, "\x04")
 }
 
-func RandBytes (size int) []byte {
+func RandBytes(size int) []byte {
 	rand.Seed(time.Now().UnixNano())
 	key := make([]byte, size)
 	_, err := rand.Read(key)
@@ -245,35 +242,11 @@ func RandBytes (size int) []byte {
 	return key
 }
 
-func stringEvery (str string, f func(rune) bool) bool {
+func StringEvery(str string, f func(rune) bool) bool {
 	for _, r := range str {
 		if !f(r) {
 			return false
 		}
 	}
 	return true
-}
-
-func VerifyPadding(pt string, size int) (string, error) {
-	// Invalid padding if not divisible by block size
-	if len(pt) % size != 0 {
-		return "", errors.New("padded string must be multiple of blocksize")
-	}
-	// Check if all runes are printable
-	allPrintable := stringEvery(pt, func(r rune) bool {
-		return strconv.IsPrint(r)
-	})
-	// Return if all runes printable
-	if allPrintable {
-		return pt, nil
-	}
-	trimPt := strings.TrimRight(pt, "\x04")
-	trimPrintable := stringEvery(trimPt, func(r rune) bool {
-		return strconv.IsPrint(r)
-	})
-	// If all characters printable after padding trimmed, valid
-	if trimPrintable {
-		return trimPt, nil
-	}
-	return "", errors.New("non-printable characters other than padding in text")
 }
