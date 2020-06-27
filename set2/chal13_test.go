@@ -46,7 +46,7 @@ func TestBreakECB(t *testing.T) {
 	// then we simply remove the last block of the second and replace it with the
 	// second block of the first profile
 	normalProf := login("a@aaaaa.co.uk")
-	weirdProf := login("a@aaaaa.euadmin\x04\x04\x04\x04\x04\x04\x04\x04\x04\x04\x04")
+	weirdProf := login("a@aaaaa.euadmin\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b")
 	adminProfEnc := append(normalProf[:32], weirdProf[16:32]...)
 	adminProf := verifyCookie(adminProfEnc)
 	assert.Equal(t, "admin", adminProf["role"])

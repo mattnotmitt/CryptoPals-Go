@@ -75,6 +75,6 @@ func chal12() []byte {
 			decrypted = append(decrypted, lookup[string(block)])
 		}
 	}
-
-	return bytes.TrimRight(decrypted, "\x04")
+	decrypted = bytes.TrimRight(decrypted, "\x00")
+	return util.UnPKCS7(decrypted)
 }

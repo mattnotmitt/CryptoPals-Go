@@ -1,32 +1,20 @@
 package set2
 
 import (
-	"CryptoPals/util"
 	"errors"
-	"strconv"
 	"strings"
 )
 
-func verifyPadding(pt string, size int) (string, error) {
+func VerifyPadding(pt string, size int) (string, error) {
 	// Invalid padding if not divisible by block size
 	if len(pt)%size != 0 {
 		return "", errors.New("padded string must be multiple of blocksize")
 	}
-	// Check if all runes are printable
-	allPrintable := util.StringEvery(pt, func(r rune) bool {
-		return strconv.IsPrint(r)
-	})
-	// Return if all runes printable
-	if allPrintable {
-		return pt, nil
+	// Get last padding byte
+	padByte := pt[len(pt)-1]
+	trimPt := strings.TrimRight(pt, string(padByte))
+	if len(pt) - len(trimPt) != int(padByte) {
+		return "", errors.New("invalid length after removing number of bytes specified in last padding char")
 	}
-	trimPt := strings.TrimRight(pt, "\x04")
-	trimPrintable := util.StringEvery(trimPt, func(r rune) bool {
-		return strconv.IsPrint(r)
-	})
-	// If all characters printable after padding trimmed, valid
-	if trimPrintable {
-		return trimPt, nil
-	}
-	return "", errors.New("non-printable characters other than padding in text")
+	return trimPt, nil
 }

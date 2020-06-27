@@ -75,13 +75,13 @@ func chal14() []byte {
 		panic("Not ECB!")
 	}
 	emptyCipherLen := len(aesOracleStaticRand([]byte{}))
-
-	for len(decrypted) < emptyCipherLen-randSize {
-		blockStart := len(decrypted) + randSize
+	randPad := size - randSize % size
+	targetLen :=  emptyCipherLen - randSize
+	for len(decrypted) < targetLen {
+		blockStart := len(decrypted) + randSize + randPad
 		blockEnd := blockStart + size
-
 		for i := size - 1; i >= 0; i-- {
-			pref := bytes.Repeat([]byte("A"), i+(size-(randSize%16)))
+			pref := bytes.Repeat([]byte("A"), i + randPad)
 			knownPrefix := append(pref, decrypted...)
 
 			lookupC := make(chan map[string]byte)
@@ -90,8 +90,11 @@ func chal14() []byte {
 			block := prefEnc[blockStart:blockEnd]
 			lookup := <-lookupC
 			decrypted = append(decrypted, lookup[string(block)])
+			if len(decrypted) == targetLen {
+				break
+			}
 		}
 	}
-
-	return bytes.TrimRight(decrypted, "\x04")
+	decrypted = bytes.TrimRight(decrypted, "\x00")
+	return util.UnPKCS7(decrypted)
 }

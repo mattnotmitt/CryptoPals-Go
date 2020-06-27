@@ -92,7 +92,7 @@ func ChunkByteArray(src []byte, chunksize int, pad bool) [][]byte {
 	}
 
 	if pad {
-		chunks[len(chunks)-1] = PKCS7Pad(chunks[len(chunks)-1], chunksize)
+		chunks = append(chunks[:len(chunks)-1], PKCS7Pad(chunks[len(chunks)-1], chunksize)...)
 	}
 
 	return chunks
@@ -139,16 +139,26 @@ func HammingDistance(orig, new []byte) int {
 }
 
 // PKCS#7 Padding Implementation
-func PKCS7Pad(block []byte, size int) []byte {
+func PKCS7Pad(block []byte, size int) [][]byte {
+	// If correct size, just add another block filled with sized bytes
 	if len(block) == size {
-		return block
+		return [][]byte{block, bytes.Repeat([]byte{byte(size)},size)}
 	}
 
 	if len(block) > size {
 		panic("Block longer than specified size")
 	}
+	padByte := []byte{byte(size - len(block))}
+	padding := bytes.Repeat(padByte, size-len(block))
+	paddedBlock := [][]byte{append(block, padding...)}
+	if len(paddedBlock[len(paddedBlock)-1]) != size {
+		panic("Padded block not correct size")
+	}
+	return paddedBlock
+}
 
-	return append(block, bytes.Repeat([]byte("\x04"), size-len(block))...)
+func UnPKCS7 (pt []byte) []byte {
+	return pt[:len(pt)-int(pt[len(pt)-1])]
 }
 
 func AESECBEncrypt(pt, key []byte) []byte {
@@ -174,12 +184,12 @@ func AESECBDecrypt(enc, key []byte) []byte {
 	}
 	decrypted := make([]byte, len(enc))
 	size := ciph.BlockSize()
-	chunks := ChunkByteArray(enc, size, true)
+	chunks := ChunkByteArray(enc, size, false)
 
 	for i, chunk := range chunks {
 		ciph.Decrypt(decrypted[i*size:(i+1)*size], chunk)
 	}
-	return bytes.TrimRight(decrypted, "\x04")
+	return UnPKCS7(decrypted)
 }
 
 func DetectECB(inp []byte, size int) (map[string]int, float64) {
@@ -223,7 +233,7 @@ func AESCBCDecrypt(enc, key, iv []byte) []byte {
 	}
 	var decrypted []byte
 	size := ciph.BlockSize()
-	chunks := ChunkByteArray(enc, size, true)
+	chunks := ChunkByteArray(enc, size, false)
 	lastChunk := iv
 	for _, chunk := range chunks {
 		decChunk := make([]byte, size)
@@ -231,7 +241,7 @@ func AESCBCDecrypt(enc, key, iv []byte) []byte {
 		decrypted = append(decrypted, XOR(decChunk, lastChunk)...)
 		lastChunk = chunk
 	}
-	return bytes.TrimRight(decrypted, "\x04")
+	return UnPKCS7(decrypted)
 }
 
 func RandBytes(size int) []byte {
