@@ -1,7 +1,7 @@
 package set2
 
 import (
-	"CryptoPals/util"
+	"github.com/mattnotmitt/CryptoPals-go/util"
 	"bytes"
 )
 

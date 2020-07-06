@@ -1,7 +1,7 @@
 package set2
 
 import (
-	"CryptoPals/util"
+	"github.com/mattnotmitt/CryptoPals-go/util"
 	"io/ioutil"
 )
 
@@ -12,5 +12,5 @@ func chal10(fp string) []byte {
 		panic(err)
 	}
 	enc := util.FromBase64(string(data))
-	return util.AESCBCDecrypt(enc, []byte("YELLOW SUBMARINE"), []byte("\x00"))
+	return util.AESCBCDecrypt(enc, []byte("YELLOW SUBMARINE"), []byte("\x00"), true)
 }

@@ -1,7 +1,7 @@
 package set1
 
 import (
-	"CryptoPals/util"
+	"github.com/mattnotmitt/CryptoPals-go/util"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"

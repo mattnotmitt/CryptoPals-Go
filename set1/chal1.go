@@ -1,7 +1,7 @@
 package set1
 
 import (
-	"CryptoPals/util"
+	"github.com/mattnotmitt/CryptoPals-go/util"
 )
 
 func chal1(inp string) string {

@@ -83,12 +83,14 @@ func ChunkByteArray(src []byte, chunksize int, pad bool) [][]byte {
 	var chunks [][]byte
 
 	for i := 0; i < len(src); i += chunksize {
+
 		end := i + chunksize
 		if end > len(src) {
 			end = len(src)
 		}
-
-		chunks = append(chunks, src[i:end])
+		nChunk := make([]byte, len(src[i:end]))
+		copy(nChunk, src[i:end])
+		chunks = append(chunks, nChunk)
 	}
 
 	if pad {
@@ -226,7 +228,7 @@ func AESCBCEncrypt(pt, key, iv []byte) []byte {
 	return encrypted
 }
 
-func AESCBCDecrypt(enc, key, iv []byte) []byte {
+func AESCBCDecrypt(enc, key, iv []byte, unPad bool) []byte {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -241,7 +243,10 @@ func AESCBCDecrypt(enc, key, iv []byte) []byte {
 		decrypted = append(decrypted, XOR(decChunk, lastChunk)...)
 		lastChunk = chunk
 	}
-	return UnPKCS7(decrypted)
+	if unPad {
+		decrypted = UnPKCS7(decrypted)
+	}
+	return decrypted
 }
 
 func RandBytes(size int) []byte {

@@ -1,7 +1,7 @@
 package set2
 
 import (
-	"CryptoPals/util"
+	"github.com/mattnotmitt/CryptoPals-go/util"
 	"regexp"
 	"sync"
 )
@@ -17,7 +17,7 @@ func vanillaIceify(arb string) []byte {
 }
 
 func checkAdmin(enc []byte) bool {
-	dec := util.AESCBCDecrypt(enc, key16, []byte("\x00"))
+	dec := util.AESCBCDecrypt(enc, key16, []byte("\x00"), true)
 	re := regexp.MustCompile(`;admin=true;`)
 	return re.Match(dec)
 }

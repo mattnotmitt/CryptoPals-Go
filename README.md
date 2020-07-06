@@ -33,11 +33,11 @@ This will run through each of the challenges for that set, verifying the expecte
   - [x] 13. ECB cut-and-paste
   - [x] 14. Byte-at-a-time ECB decryption (Harder)
   - [x] 15. PKCS#7 padding validation
-  - [ ] 16. CBC bitflipping attacks
+  - [x] 16. CBC bitflipping attacks
 
 ### [Set 3: Block & Stream Crypto](http://cryptopals.com/sets/3)
 
-  - [ ] 17. The CBC padding oracle
+  - [x] 17. The CBC padding oracle
   - [ ] 18. Implement CTR, the stream cipher mode
   - [ ] 19. Break fixed-nonce CTR mode using substitions
   - [ ] 20. Break fixed-nonce CTR statistically
