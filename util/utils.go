@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"crypto/aes"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 	"math/rand"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -80,6 +84,10 @@ func XOR(inp, key []byte) []byte {
 
 // Splits bytearray into equally sized chunks
 func ChunkByteArray(src []byte, chunksize int, pad bool) [][]byte {
+	if chunksize < 1 {
+		panic("chunksize must be greater than 0")
+	}
+
 	var chunks [][]byte
 
 	for i := 0; i < len(src); i += chunksize {
@@ -112,7 +120,7 @@ func ScoreString(inp []byte) (float64, float64) {
 
 	for i, c := range counts {
 		if c > 0 {
-			freqDist[i] = float64(c) / float64(len(inp))
+			freqDist[i] = (float64(c) / float64(len(inp))) * 100
 		}
 	}
 
@@ -230,9 +238,7 @@ func AESCBCEncrypt(pt, key, iv []byte) []byte {
 
 func AESCBCDecrypt(enc, key, iv []byte, unPad bool) []byte {
 	ciph, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
+	Check(err)
 	var decrypted []byte
 	size := ciph.BlockSize()
 	chunks := ChunkByteArray(enc, size, false)
@@ -247,6 +253,68 @@ func AESCBCDecrypt(enc, key, iv []byte, unPad bool) []byte {
 		decrypted = UnPKCS7(decrypted)
 	}
 	return decrypted
+}
+
+func AESCTRDecrypt(enc, key, nonce []byte) ([]byte, error) {
+	ciph, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	size := ciph.BlockSize()
+	if len(nonce) != size/2 {
+		return nil, errors.New("random nonce must be half the keysize")
+	}
+	chunkEnc := ChunkByteArray(enc, size, false)
+	chunkDec := make([]string, len(chunkEnc))
+
+	var wg sync.WaitGroup
+	wg.Add(len(chunkEnc))
+
+	for ctr := 0; ctr < len(chunkEnc); ctr++ {
+		go func(lCtr int64, chunk []byte) {
+			defer wg.Done()
+			b := make([]byte, 8)
+			binary.LittleEndian.PutUint64(b, uint64(lCtr))
+			conc := append(nonce, b...)
+			ks := AESECBEncrypt(conc, key)
+			chunkDec[lCtr] = string(XOR(chunk, ks))
+		}(int64(ctr), chunkEnc[ctr])
+	}
+	wg.Wait()
+
+	return []byte(strings.Join(chunkDec, "")), nil
+}
+
+func AESCTREncrypt(pt, key, nonce []byte) ([]byte, error) {
+	ciph, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	size := ciph.BlockSize()
+	if len(nonce) != size/2 {
+		return nil, errors.New("random nonce must be half the keysize")
+	}
+	chunkEnc := ChunkByteArray(pt, size, false)
+	chunkDec := make([]string, len(chunkEnc))
+
+	var wg sync.WaitGroup
+	wg.Add(len(chunkEnc))
+
+	for ctr := 0; ctr < len(chunkEnc); ctr++ {
+		go func(lCtr int64, chunk []byte) {
+			defer wg.Done()
+			b := make([]byte, 8)
+			binary.LittleEndian.PutUint64(b, uint64(lCtr))
+			conc := append(nonce, b...)
+			ks := AESECBEncrypt(conc, key)
+			chunkDec[lCtr] = string(XOR(chunk, ks))
+		}(int64(ctr), chunkEnc[ctr])
+	}
+	wg.Wait()
+
+	return []byte(strings.Join(chunkDec, "")), nil
 }
 
 func RandBytes(size int) []byte {

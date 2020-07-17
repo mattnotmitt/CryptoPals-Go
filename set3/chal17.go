@@ -3,8 +3,8 @@ package set3
 import (
 	"bytes"
 	"errors"
-	"github.com/mattnotmitt/CryptoPals-go/set2"
-	"github.com/mattnotmitt/CryptoPals-go/util"
+	"github.com/mattnotmitt/CryptoPals-Go/set2"
+	"github.com/mattnotmitt/CryptoPals-Go/util"
 	"io/ioutil"
 	"math/rand"
 	"strings"

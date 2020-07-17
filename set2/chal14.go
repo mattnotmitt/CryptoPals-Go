@@ -1,7 +1,7 @@
 package set2
 
 import (
-	"github.com/mattnotmitt/CryptoPals-go/util"
+	"github.com/mattnotmitt/CryptoPals-Go/util"
 	"bytes"
 	"io/ioutil"
 	"math/rand"

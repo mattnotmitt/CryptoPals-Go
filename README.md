@@ -38,9 +38,9 @@ This will run through each of the challenges for that set, verifying the expecte
 ### [Set 3: Block & Stream Crypto](http://cryptopals.com/sets/3)
 
   - [x] 17. The CBC padding oracle
-  - [ ] 18. Implement CTR, the stream cipher mode
-  - [ ] 19. Break fixed-nonce CTR mode using substitions
-  - [ ] 20. Break fixed-nonce CTR statistically
+  - [x] 18. Implement CTR, the stream cipher mode
+  - [x] 19. Break fixed-nonce CTR mode using substitions
+  - [x] 20. Break fixed-nonce CTR statistically
   - [ ] 21. Implement the MT19937 Mersenne Twister RNG
   - [ ] 22. Crack an MT19937 seed
   - [ ] 23. Clone an MT19937 RNG from its output

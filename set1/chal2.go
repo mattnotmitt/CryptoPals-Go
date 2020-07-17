@@ -1,6 +1,6 @@
 package set1
 
-import "github.com/mattnotmitt/CryptoPals-go/util"
+import "github.com/mattnotmitt/CryptoPals-Go/util"
 
 func chal2(inp, key string) string {
 	rawInp := util.FromHex(inp)

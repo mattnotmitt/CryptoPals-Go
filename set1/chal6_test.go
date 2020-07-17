@@ -1,7 +1,8 @@
 package set1
 
 import (
-	"github.com/mattnotmitt/CryptoPals-go/util"
+	"fmt"
+	"github.com/mattnotmitt/CryptoPals-Go/util"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
@@ -15,5 +16,6 @@ func TestChal6(t *testing.T) {
 	data, err := ioutil.ReadFile("data/6.txt")
 	util.Check(err)
 	enc := util.FromBase64(string(data))
-	chal6(enc, 1)
+	dec, _ := chal6(enc, 1)
+	fmt.Println(string(dec))
 }

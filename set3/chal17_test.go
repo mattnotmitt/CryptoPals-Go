@@ -1,7 +1,7 @@
 package set3
 
 import (
-	"github.com/mattnotmitt/CryptoPals-go/util"
+	"github.com/mattnotmitt/CryptoPals-Go/util"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

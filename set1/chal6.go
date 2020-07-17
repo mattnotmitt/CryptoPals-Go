@@ -1,8 +1,7 @@
 package set1
 
 import (
-	"github.com/mattnotmitt/CryptoPals-go/util"
-	"fmt"
+	"github.com/mattnotmitt/CryptoPals-Go/util"
 	"sort"
 )
 
@@ -13,9 +12,26 @@ type Keysize struct {
 	nhd float64
 }
 
-func chal6(enc []byte, keys int) {
-	fmt.Println("Bruteforcing Vigenere...")
+func BreakRepeatingXOR(enc []byte, keyLen int) ([]byte, []byte) {
+		blocks := util.ChunkByteArray(enc, keyLen, false)
+		transposedBlocks := make([][]byte, keyLen)
 
+		for i := 0; i < len(blocks); i++ {
+			for j := 0; j < len(blocks[i]); j++ {
+				transposedBlocks[j] = append(transposedBlocks[j], blocks[i][j])
+			}
+		}
+
+		keys := make([]byte, keyLen)
+		for i, tbl := range transposedBlocks {
+			_, _, k := chal3(tbl)
+			keys[i] = k
+		}
+		dec := util.XOR(enc, keys)
+		return dec, keys
+}
+
+func determineKeysize(enc []byte, noKeys int) []int {
 	kss := make([]Keysize, 39)
 
 	for ks := 2; ks < 41; ks++ {
@@ -30,34 +46,18 @@ func chal6(enc []byte, keys int) {
 
 		nhd := avgDist / iter
 		kss[ks-2] = Keysize{ks, nhd}
-
 	}
 	sort.Slice(kss, func(i, j int) bool { return kss[i].nhd < kss[j].nhd })
-	kss = kss[:keys]
-
-	fmt.Printf("Optimal keysize: %v\n", kss[0].ks)
-	if keys > 1 {
-		fmt.Printf("Also checking: %v\n", kss[1:])
+	kss = kss[:noKeys]
+	keyLens := make([]int, noKeys)
+	for i, v := range kss {
+		keyLens[i] = v.ks
 	}
+	return keyLens
+}
 
-	for _, ks := range kss {
-		bls := util.ChunkByteArray(enc, ks.ks, false)
-		tbls := make([][]byte, ks.ks)
-
-		for i := 0; i < len(bls); i++ {
-			for j := 0; j < len(bls[i]); j++ {
-				tbls[j] = append(tbls[j], bls[i][j])
-			}
-		}
-
-		keys := make([]byte, ks.ks)
-		for i, tbl := range tbls {
-			_, _, k := chal3(tbl)
-			keys[i] = k
-		}
-		fmt.Printf("Best match found, with key: \"%v\":\n", string(keys))
-		dec := util.XOR(enc, keys)
-		//fmt.Println(enc)
-		fmt.Println(string(dec))
-	}
+func chal6(enc []byte, noKeys int) ([]byte, []byte) {
+	keyLens := determineKeysize(enc, noKeys)
+	dec, keys := BreakRepeatingXOR(enc, keyLens[0])
+	return dec, keys
 }

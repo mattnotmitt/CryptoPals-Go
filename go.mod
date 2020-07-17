@@ -1,4 +1,4 @@
-module github.com/mattnotmitt/CryptoPals-go
+module github.com/mattnotmitt/CryptoPals-Go
 
 go 1.14
 
